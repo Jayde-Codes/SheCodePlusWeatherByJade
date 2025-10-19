@@ -1,2 +1,274 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-Time Weather App</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #c3e0e5, #f5e0f7);
+        color: #333;
+      }
+      .search {
+        max-width: 500px;
+        width: 90%;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: center;
+      }
+      .search form {
+        display: flex;
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .search input[type="text"] {
+        flex: 1;
+        padding: 12px 15px;
+        border: none;
+        font-size: 16px;
+        outline: none;
+      }
+      .search input[type="submit"] {
+        padding: 12px 25px;
+        background: #8c7ae6;
+        color: #fff;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      .search input[type="submit"]:hover {
+        background: #6d5bd3;
+      }
+      .weather-card {
+        max-width: 500px;
+        width: 90%;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+      }
+      h2 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+      }
+      .temp {
+        font-size: 46px;
+        font-weight: 700;
+        margin: 10px 0;
+      }
+      .description {
+        font-size: 32px;
+        color: #666;
+        text-transform: capitalize;
+        margin-bottom: 8px;
+      }
+      .details {
+        font-size: 16px;
+        color: #444;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+      .email-signup {
+        margin-top: 25px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        width: 90%;
+        max-width: 500px;
+      }
+      .email-signup h3 {
+        margin-top: 0;
+        color: #333;
+      }
+      .email-signup form {
+        margin-top: 10px;
+      }
+      .email-signup input[type="email"] {
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+        outline: none;
+        width: 60%;
+        max-width: 280px;
+      }
+      .email-signup input[type="submit"] {
+        padding: 10px 20px;
+        background: #8c7ae6;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        margin-left: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      .email-signup input[type="submit"]:hover {
+        background: #6d5bd3;
+      }
+      #emailMessage {
+        margin-top: 10px;
+        font-size: 15px;
+      }
+      footer {
+        margin-top: 30px;
+        font-size: 13px;
+        color: #555;
+        text-align: center;
+      }
+      footer a {
+        color: #8c7ae6;
+        text-decoration: none;
+        margin: 0 5px;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="search">
+      <form id="searchForm">
+        <input type="text" placeholder="Enter a city..." id="cityInput" />
+        <input type="submit" value="Search" />
+      </form>
+    </section>
+    <section class="weather-card">
+      <h2 class="city">Sydney</h2>
+      <p class="temp">-- °C</p>
+      <p class="description">--</p>
+      <p class="details">Humidity: --%, Wind: -- km/h</p>
+      <p class="error" id="errorMsg"></p>
+    </section>
+    <section class="email-signup">
+      <h3>Subscribe for Weather Updates</h3>
+      <form id="emailForm">
+        <input
+          type="email"
+          id="email"
+          placeholder="Enter your email"
+          required
+        />
+        <input type="submit" value="Sign Up" />
+      </form>
+      <p id="emailMessage"></p>
+    </section>
+    <footer>
+      <p>
+        This project was coded by Jade Dickinson, is open-sourced on
+        <a href="https://github.com/jadedickinson" target="_blank">GitHub</a>
+        and hosted on
+        <a href="https://www.netlify.com" target="_blank">Netlify</a>.
+      </p>
+    </footer>
+
+    <script>
+      const apiKey = "f884bd7baca8c1818a3ad457d2644c90";
+      function getWeatherEmoji(main) {
+        main = main.toLowerCase();
+        if (main.includes("clear")) return "☀️";
+        if (main.includes("cloud")) return "☁️";
+        if (main.includes("rain")) return "🌧️";
+        if (main.includes("drizzle")) return "🌦️";
+        if (main.includes("thunderstorm")) return "⛈️";
+        if (main.includes("snow")) return "❄️";
+        if (
+          main.includes("mist") ||
+          main.includes("fog") ||
+          main.includes("haze")
+        )
+          return "🌫️";
+        if (
+          main.includes("smoke") ||
+          main.includes("dust") ||
+          main.includes("sand")
+        )
+          return "🌪️";
+        return "";
+      }
+      async function fetchWeather(city) {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+          city
+        )}&appid=${apiKey}&units=metric`;
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+          if (response.ok) updateWeather(data);
+          else showError("City not found. Please try again.");
+        } catch {
+          showError("Error fetching data. Please check your connection.");
+        }
+      }
+      function updateWeather(data) {
+        document.querySelector(".city").textContent = data.name;
+        document.querySelector(".temp").textContent = `${Math.round(
+          data.main.temp
+        )}°C`;
+        const desc = data.weather[0].description;
+        const weatherEmoji = getWeatherEmoji(data.weather[0].main);
+        document.querySelector(
+          ".description"
+        ).textContent = `${weatherEmoji} ${desc}`;
+        document.querySelector(".details").textContent = `💧 Humidity: ${
+          data.main.humidity
+        }%, 🌬️ Wind: ${Math.round(data.wind.speed * 3.6)} km/h`;
+        document.getElementById("errorMsg").textContent = "";
+      }
+      function showError(msg) {
+        document.getElementById("errorMsg").textContent = msg;
+      }
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const city = document.getElementById("cityInput").value.trim();
+          if (!city) {
+            showError("Please enter a city name.");
+            return;
+          }
+          fetchWeather(city);
+        });
+      fetchWeather("Sydney");
+      document
+        .getElementById("emailForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const email = document.getElementById("email").value.trim();
+          const emailMsg = document.getElementById("emailMessage");
+          if (!email) {
+            emailMsg.style.color = "red";
+            emailMsg.textContent = "❌ Please enter your email.";
+            return;
+          }
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+            emailMsg.style.color = "red";
+            emailMsg.textContent = "❌ Please enter a valid email.";
+            return;
+          }
+          emailMsg.style.color = "green";
+          emailMsg.textContent = "✅ Thank you for subscribing!";
+          console.log("Email submitted:", email);
+          document.getElementById("email").value = "";
+          setTimeout(() => {
+            emailMsg.textContent = "";
+          }, 5000);
+        });
+    </script>
+  </body>
+</html>
